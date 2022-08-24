@@ -1,0 +1,532 @@
+---
+title: "Psychosis Project - Regression and ANOVA tables"
+author: T. Bryan Jackson
+organization: TAMU, Psychological and Brain Sciences 
+output:
+
+  pdf_document: 
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+---
+
+# Load Libraries
+
+```{r message = FALSE, warning = FALSE}
+library("ggplot2")
+library("brms")
+library("caret")
+library("jtools")
+library("multcomp")
+library("emmeans")
+library("apaTables")
+library("papaja")
+```
+
+
+# Prepare Dataset
+
+Set Up Group Factor, Split Dataset, etc.
+
+## Load Dataset
+
+```{r inlcude = FALSE}
+setwd("~/Desktop/PsychosisProject/Analyses")
+raw_data <- read.csv("~/Desktop/PsychosisProject/Analyses/Data.csv")
+dataset = raw_data
+dataset$Group <- as.factor(dataset$Group)
+dataset$Group <- factor(dataset$Group, levels=c('HC', 'CHR', 'ECP', 'CP'))
+
+set.seed(4)
+
+dataset_4 = split(dataset,dataset$Group)
+CP = dataset_4$CP
+ECP = dataset_4$ECP
+CHR = dataset_4$CHR
+HC = dataset_4$HC
+
+noHC = rbind(CHR, ECP, CP)
+```
+
+## Descriptive Stats
+
+```{r}
+summary(dataset)
+
+```
+
+### HC
+
+```{r}
+summary(HC)
+sd(HC$Age, na.rm=TRUE)
+sd(HC$Alcohol, na.rm=TRUE)
+sd(HC$Marj, na.rm=TRUE)
+sd(HC$CPZ_eqiuv, na.rm=TRUE)
+sd(HC$PANSS.P, na.rm=TRUE)
+sd(HC$PANSS.N, na.rm=TRUE)
+sd(HC$PANSS.Cog, na.rm=TRUE)
+sd(HC$SIPS.P, na.rm=TRUE)
+sd(HC$SIPS.N, na.rm=TRUE)
+
+```
+
+### CHR
+
+```{r}
+summary(CHR)
+sd(CHR$Age, na.rm=TRUE)
+sd(CHR$Alcohol, na.rm=TRUE)
+sd(CHR$Marj, na.rm=TRUE)
+sd(CHR$CPZ_eqiuv, na.rm=TRUE)
+sd(CHR$PANSS.P, na.rm=TRUE)
+sd(CHR$PANSS.N, na.rm=TRUE)
+sd(CHR$PANSS.Cog, na.rm=TRUE)
+sd(CHR$SIPS.P, na.rm=TRUE)
+sd(CHR$SIPS.N, na.rm=TRUE)
+```
+
+### ECP
+
+```{r}
+summary(ECP)
+sd(ECP$Age, na.rm=TRUE)
+sd(ECP$Alcohol, na.rm=TRUE)
+sd(ECP$Marj, na.rm=TRUE)
+sd(ECP$CPZ_eqiuv, na.rm=TRUE)
+sd(ECP$PANSS.P, na.rm=TRUE)
+sd(ECP$PANSS.N, na.rm=TRUE)
+sd(ECP$PANSS.Cog, na.rm=TRUE)
+sd(ECP$SIPS.P, na.rm=TRUE)
+sd(ECP$SIPS.N, na.rm=TRUE)
+```
+
+### CP
+
+```{r}
+summary(CP)
+sd(CP$Age, na.rm=TRUE)
+sd(CP$Alcohol, na.rm=TRUE)
+sd(CP$Marj, na.rm=TRUE)
+sd(CP$CPZ_eqiuv, na.rm=TRUE)
+sd(CP$PANSS.P, na.rm=TRUE)
+sd(CP$PANSS.N, na.rm=TRUE)
+sd(CP$PANSS.Cog, na.rm=TRUE)
+sd(CP$SIPS.P, na.rm=TRUE)
+sd(CP$SIPS.N, na.rm=TRUE)
+```
+
+# Group Differences in Symptoms
+
+## PANSS-P
+```{r}
+GroupDiffPP <- aov(PANSS.P ~ Group + Alcohol+ Marj + Age + CPZ_eqiuv, dataset)
+summary(GroupDiffPP)
+PANSS_P_group_plot <- effect_plot(GroupDiffPP, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+PANSS_P_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank(), axis.title.y = element_blank())
+
+posthoc_PP <- glht(GroupDiffPP, linfct = mcp(Group="Tukey"))
+summary(posthoc_PP, adjusted(type='fdr'))
+
+```
+
+## PANSS-N
+```{r}
+
+GroupDiffPN <- aov(PANSS.N ~ Group + Alcohol+ Marj + Age + CPZ_eqiuv, dataset)
+summary(GroupDiffPN)
+PANSS_N_group_plot <- effect_plot(GroupDiffPN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+PANSS_N_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank(), axis.title.y = element_blank())
+
+posthoc_PN <- glht(GroupDiffPN, linfct = mcp(Group="Tukey"))
+summary(posthoc_PN, adjusted(type='fdr'))
+
+```
+
+## PANSS-Cog
+```{r}
+
+GroupDiffPC <- aov(PANSS.Cog ~ Group + Alcohol+ Marj + Age  + CPZ_eqiuv, dataset)
+summary(GroupDiffPC)
+PANSS_Cog_group_plot <- effect_plot(GroupDiffPC, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+PANSS_Cog_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank(), axis.title.y = element_blank())
+
+```
+
+## SIPS-P
+```{r}
+
+GroupDiffSP <- aov(SIPS.P ~ Group + Alcohol + Marj + Age , dataset)
+summary(GroupDiffSP)
+SIPS_P_group_plot <- effect_plot(GroupDiffSP, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+SIPS_P_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank(), axis.title.y = element_blank())
+
+posthoc_SP <- glht(GroupDiffSP, linfct = mcp(Group="Tukey"))
+summary(posthoc_SP, adjusted(type='fdr'))
+
+```
+
+## SIPS-N
+```{r}
+
+GroupDiffSN <- aov(SIPS.N ~ Group + Alcohol+ Marj + Age, dataset)
+summary(GroupDiffSN)
+SIPS_N_group_plot <- effect_plot(GroupDiffSN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+SIPS_N_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank(), axis.title.y = element_blank())
+
+posthoc_SN <- glht(GroupDiffSN, linfct = mcp(Group="Tukey"))
+summary(posthoc_SN, adjusted(type='fdr'))
+
+```
+
+
+
+
+# Group Differences in CB-BG GE
+
+## CCBN
+```{r}
+GroupDiffC <- aov(CCBN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffC)
+CCBN_group_plot <- effect_plot(GroupDiffC, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+CCBN_group_plot + ylab("CCBN GE") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_C <- glht(GroupDiffC, linfct = mcp(Group="Tukey"))
+summary(posthoc_C, adjusted(type='fdr'))
+
+```
+
+## MCBN
+```{r}
+
+GroupDiffM <- aov(MCBN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffM)
+MCBN_group_plot <- effect_plot(GroupDiffM, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+MCBN_group_plot + ylab("MCBN GE") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_M <- glht(GroupDiffM, linfct = mcp(Group="Tukey"))
+summary(posthoc_M, adjusted(type='fdr'))
+
+```
+
+
+# Group Differences in Cort GE
+
+## FPN
+
+```{r}
+GroupDiffFPN <- aov(FPN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffFPN)
+FPN_group_plot <- effect_plot(GroupDiffFPN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+FPN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_FPN <- glht(GroupDiffFPN, linfct = mcp(Group="Tukey"))
+summary(posthoc_FPN, adjusted(type='fdr'))
+
+```
+
+## CON
+```{r}
+
+GroupDiffCON <- aov(CON ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffCON)
+CON_group_plot <- effect_plot(GroupDiffCON, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+CON_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_CON <- glht(GroupDiffCON, linfct = mcp(Group="Tukey"))
+summary(posthoc_CON, adjusted(type='fdr'))
+
+```
+
+## DMN
+```{r}
+
+GroupDiffDMN <- aov(DMN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffDMN)
+DMN_group_plot <- effect_plot(GroupDiffDMN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+DMN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_DMN <- glht(GroupDiffDMN, linfct = mcp(Group="Tukey"))
+summary(posthoc_DMN, adjusted(type='fdr'))
+
+```
+
+## EN
+```{r}
+
+GroupDiffEN <- aov(EN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffEN)
+EN_group_plot <- effect_plot(GroupDiffEN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+EN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_EN <- glht(GroupDiffEN, linfct = mcp(Group="Tukey"))
+summary(posthoc_EN, adjusted(type='fdr'))
+
+```
+
+## MN
+```{r}
+
+GroupDiffMN <- aov(MN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffMN)
+MN_group_plot <- effect_plot(GroupDiffMN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+MN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_MN <- glht(GroupDiffMN, linfct = mcp(Group="Tukey"))
+summary(posthoc_MN, adjusted(type='fdr'))
+
+```
+
+## AN
+```{r}
+
+GroupDiffAN <- aov(AN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffAN)
+AN_group_plot <- effect_plot(GroupDiffAN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+AN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_AN <- glht(GroupDiffAN, linfct = mcp(Group="Tukey"))
+summary(posthoc_AN, adjusted(type='fdr'))
+
+```
+
+## VN
+```{r}
+
+GroupDiffVN <- aov(VN ~ Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, dataset)
+summary(GroupDiffVN)
+VN_group_plot <- effect_plot(GroupDiffVN, pred = Group, interval = TRUE, partial.residuals = TRUE, jitter = .2)
+VN_group_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1), axis.title.x = element_blank())
+
+posthoc_VN <- glht(GroupDiffVN, linfct = mcp(Group="Tukey"))
+summary(posthoc_VN, adjusted(type='fdr'))
+
+```
+# CB-BG GE predicts Cort GE
+
+## FPN
+```{r}
+FPN_4groups <- lm(FPN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(FPN_4groups)
+FPN_CCBN_plot <- effect_plot(FPN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+FPN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1))
+FPN_MCBN_plot <- effect_plot(FPN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+FPN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+trellis.par.set(par.axis.text=list(cex=1.25))
+trellis.par.set(par.strip.text=list(cex=2))
+trellis.par.set(par.xlab.text=list(fontsize=0))
+trellis.par.set(par.ylab.text=list(fontsize=0))
+
+xyplot(FPN ~ CCBN | Group, data=dataset, fit = FPN_4groups, par.settings = list(strip.background=list(col="lightgrey"), par.strip.text = list(fontsize=20)),
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(FPN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+
+```
+
+## CON
+```{r}
+
+CON_4groups <- lm(CON ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(CON_4groups)
+CON_CCBN_plot <- effect_plot(CON_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+CON_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+CON_MCBN_plot <- effect_plot(CON_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+CON_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(FPN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(FPN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+```
+
+## DMN
+```{r}
+
+DMN_4groups <- lm(DMN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(DMN_4groups)
+DMN_CCBN_plot <- effect_plot(DMN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+DMN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+DMN_MCBN_plot <- effect_plot(DMN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+DMN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(DMN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(DMN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+
+```
+
+## EN
+```{r}
+
+EN_4groups <- lm(EN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(EN_4groups)
+EN_CCBN_plot <- effect_plot(EN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+EN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+EN_MCBN_plot <- effect_plot(EN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+EN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(EN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(EN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+```
+
+## MN
+```{r}
+
+MN_4groups <- lm(MN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(MN_4groups)
+MN_CCBN_plot <- effect_plot(MN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+MN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+MN_MCBN_plot <- effect_plot(MN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+MN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(MN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(MN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+
+```
+
+## VN
+```{r}
+
+VN_4groups <- lm(VN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(VN_4groups)
+VN_CCBN_plot <- effect_plot(VN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+VN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+VN_MCBN_plot <- effect_plot(VN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+VN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(VN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(VN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+
+```
+
+## AN
+```{r}
+
+AN_4groups <- lm(AN ~ CCBN*MCBN*Group + Alcohol+ Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(AN_4groups)
+AN_CCBN_plot <- effect_plot(AN_4groups, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+AN_CCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+AN_MCBN_plot <- effect_plot(AN_4groups, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+AN_MCBN_plot + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+xyplot(AN ~ CCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+xyplot(AN ~ MCBN | Group, data=dataset, par.settings = list(strip.background=list(col="lightgrey")), 
+  panel = function(x, y, ...) {
+       panel.xyplot(x, y, ..., col = "black")
+       panel.lmline(x, y, col = "black")
+  })
+```
+
+## Combined table 
+```{r}
+export_summs(FPN_4groups, CON_4groups,DMN_4groups,EN_4groups,MN_4groups, VN_4groups,AN_4groups, to.file = "docx", file.name = "models.docx", model.names = c("FPN", "CON", "DMN", "EN", "MN", "VN", "AN"))
+```
+
+
+# Predicting Symptoms - Across All Groups (incl. HC)
+
+## PANSS-P
+```{r}
+PANSS_P_all <- lm(PANSS.P ~ CCBN + MCBN + Alcohol + Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(PANSS_P_all)
+PANSS_P_CCBN_all_plot <- effect_plot(PANSS_P_all, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_P_CCBN_all_plot + ylab("PANSS-P") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1))
+PANSS_P_MCBN_all_plot <- effect_plot(PANSS_P_all, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_P_MCBN_all_plot + ylab("PANSS-P") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+
+```
+
+## PANSS-N
+```{r}
+
+PANSS_N_all <- lm(PANSS.N ~ CCBN + MCBN + Alcohol + Marj + Age + Dataset + CPZ_eqiuv, data = dataset)
+summary(PANSS_N_all)
+PANSS_N_CCBN_all_plot <- effect_plot(PANSS_N_all, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_N_CCBN_all_plot + ylab("PANSS-N") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+PANSS_N_MCBN_all_plot <- effect_plot(PANSS_N_all, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_N_MCBN_all_plot + ylab("PANSS-N") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+
+```
+
+## PANSS-Cog
+```{r}
+
+PANSS_C_all <- lm(PANSS.Cog ~ CCBN + MCBN + Alcohol + Marj + Age + CPZ_eqiuv, data = dataset)
+summary(PANSS_C_all)
+PANSS_Cog_CCBN_all_plot <- effect_plot(PANSS_C_all, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_Cog_CCBN_all_plot + ylab("PANSS-Cog") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+PANSS_Cog_MCBN_all_plot <- effect_plot(PANSS_C_all, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+PANSS_Cog_MCBN_all_plot + ylab("PANSS-Cog") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+
+```
+
+## SIPS-P
+```{r}
+SIPS_P_all <- lm(SIPS.P ~ CCBN + MCBN + Alcohol + Marj + Age, data = dataset)
+summary(SIPS_P_all)
+SIPS_P_CCBN_all_plot <- effect_plot(SIPS_P_all, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+SIPS_P_CCBN_all_plot + ylab("SIPS-P") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+SIPS_P_MCBN_all_plot <- effect_plot(SIPS_P_all, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+SIPS_P_MCBN_all_plot + ylab("SIPS-P") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+
+```
+
+## SIPS-N
+```{r}
+
+SIPS_N_all <- lm(SIPS.N ~ CCBN + MCBN + Alcohol + Marj + Age, data = dataset)
+summary(SIPS_N_all)
+SIPS_N_CCBN_all_plot <- effect_plot(SIPS_N_all, pred = CCBN, interval = TRUE, partial.residuals = TRUE)
+SIPS_N_CCBN_all_plot + ylab("SIPS-N") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+SIPS_N_MCBN_all_plot <- effect_plot(SIPS_N_all, pred = MCBN, interval = TRUE, partial.residuals = TRUE)
+SIPS_N_MCBN_all_plot + ylab("SIPS-N") + theme(text = element_text(size = 24), panel.border = element_rect(colour = "black", fill=NA, size=1)) 
+
+```
+
+## Combined table 
+```{r}
+export_summs(PANSS_P_all, PANSS_N_all, PANSS_C_all, SIPS_P_all, SIPS_N_all, to.file = "docx", file.name = "models_symptoms.docx", model.names = c("PANSS-P", "PANSS-N", "PANSS-C", "SIPS-P", "SIPS-N"))
+```
